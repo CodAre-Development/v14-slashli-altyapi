@@ -1,0 +1,16 @@
+{
+  "help": {
+    "name": "yardım",
+    "description": "Bot ve komutları hakkındaki bilgileri görüntüleyin",
+    "options": {
+      "command": {
+        "name": "komut",
+        "description": "Hakkında bilgi almak istediğiniz komut"
+      }
+    }
+  },
+  "ping": {
+    "name": "ping",
+    "description": "Botun gecikme ve yanıt süresini kontrol edin"
+  }
+}

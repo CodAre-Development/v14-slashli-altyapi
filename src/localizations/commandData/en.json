@@ -1,0 +1,16 @@
+{
+  "help": {
+    "name": "help",
+    "description": "View information about the bot and its commands",
+    "options": {
+      "command": {
+        "name": "command",
+        "description": "The command you want to get information about"
+      }
+    }
+  },
+  "ping": {
+    "name": "ping",
+    "description": "Check the bot's latency and response time"
+  }
+}
