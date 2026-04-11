@@ -8,7 +8,6 @@ export async function setupI18n() {
     fallbackLng: defaultLanguage,
     lng: defaultLanguage,
     defaultNS: 'translation',
-    showSupportNotice: false,
     interpolation: {
       escapeValue: false,
       prefix: '{',

@@ -1,10 +1,23 @@
-import { type ChatInputCommandInteraction, EmbedBuilder, MessageFlags } from 'discord.js';
+import {
+  type ChatInputCommandInteraction,
+  type ColorResolvable,
+  EmbedBuilder,
+  type EmbedData,
+  MessageFlags,
+  resolveColor
+} from 'discord.js';
 import { config } from '@/config';
-import type { CustomMessageOptions } from '@/types';
+
+export type SendEmbedOptions = Omit<EmbedData, 'image' | 'thumbnail' | 'color'> & {
+  image?: string;
+  thumbnail?: string;
+  color?: ColorResolvable;
+  ephemeral?: boolean;
+};
 
 export async function sendEmbed(
   interaction: ChatInputCommandInteraction,
-  options: Partial<CustomMessageOptions> & { embedType: 'error' | 'success' }
+  options: SendEmbedOptions & { embedType: 'error' | 'success' }
 ) {
   const titles = interaction.translate(`embedTitles.${options.embedType}`, {
     returnObjects: true
@@ -14,15 +27,13 @@ export async function sendEmbed(
   const title = options.title ?? `${emoji} ${titles[Math.floor(Math.random() * titles.length)]}`;
   const color = options.color || config.embedColors[options.embedType];
 
-  const embed = new EmbedBuilder()
-    .setTitle(title || null)
-    .setColor(color || null)
-    .setDescription(options.description || null)
-    .setAuthor(options.author || null)
-    .setThumbnail(options.thumbnail || null)
-    .setImage(options.image || null)
-    .setFooter(options.footer || null)
-    .setFields(options.fields || []);
+  const embed = new EmbedBuilder({
+    ...options,
+    title,
+    color: resolveColor(color),
+    image: options.image ? { url: options.image } : undefined,
+    thumbnail: options.thumbnail ? { url: options.thumbnail } : undefined
+  });
 
   if (interaction.deferred || interaction.replied) {
     return interaction.editReply({ embeds: [embed], components: [] });

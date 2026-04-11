@@ -1,7 +1,6 @@
 import type {
   ChatInputCommandInteraction,
   ClientEvents,
-  ColorResolvable,
   PermissionResolvable,
   SlashCommandBuilder,
   SlashCommandOptionsOnlyBuilder,
@@ -38,17 +37,4 @@ export type EventData<T extends keyof ClientEvents> = {
   name: T;
   once?: boolean;
   run: (client: Client, ...rest: ClientEvents[T]) => void;
-};
-
-export type CustomMessageOptions = {
-  content: string;
-  title: string;
-  author: { name: string; iconURL?: string };
-  description: string;
-  fields: { name: string; value: string; inline?: boolean }[];
-  color: ColorResolvable;
-  thumbnail: string;
-  image: string;
-  footer: { text: string; iconURL?: string };
-  ephemeral: boolean;
 };

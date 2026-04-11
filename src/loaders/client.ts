@@ -10,11 +10,10 @@ import i18next, { type TFunction, type TOptions } from 'i18next';
 import { config } from '@/config';
 import { loadCommands } from '@/loaders/command';
 import { loadEvents } from '@/loaders/event';
-import type { CustomMessageOptions } from '@/types';
 import { env } from '@/utils/env';
 import { setupI18n } from '@/utils/i18n';
 import { logger } from '@/utils/logger';
-import { sendEmbed } from '@/utils/sendEmbed';
+import { type SendEmbedOptions, sendEmbed } from '@/utils/sendEmbed';
 
 class Client extends DiscordClient<true> {
   constructor() {
@@ -57,9 +56,8 @@ class Client extends DiscordClient<true> {
   private extendInteractionPrototype() {
     Object.defineProperties(BaseInteraction.prototype, {
       error: {
-        value(optionsOrMessage: string | Partial<CustomMessageOptions>) {
-          let options: Partial<CustomMessageOptions> | string = optionsOrMessage;
-
+        value(optionsOrDesc: SendEmbedOptions | string) {
+          let options: SendEmbedOptions | string = optionsOrDesc;
           if (typeof options === 'string') {
             options = { description: options };
           }
@@ -68,9 +66,8 @@ class Client extends DiscordClient<true> {
         }
       },
       success: {
-        value(optionsOrMessage: string | Partial<CustomMessageOptions>) {
-          let options: Partial<CustomMessageOptions> | string = optionsOrMessage;
-
+        value(optionsOrDesc: SendEmbedOptions | string) {
+          let options: SendEmbedOptions | string = optionsOrDesc;
           if (typeof options === 'string') {
             options = { description: options };
           }

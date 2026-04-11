@@ -1,18 +1,17 @@
-import type { Message } from 'discord.js';
 import type { TFunction } from 'i18next';
-import type { CustomMessageOptions } from '@/types';
+import type { SendEmbedOptions } from '@/utils/sendEmbed';
 
 declare module 'discord.js' {
   interface BaseInteraction {
     language: string;
     translate: TFunction;
 
-    success(options: Partial<CustomMessageOptions>): Promise<Message>;
+    success(options: SendEmbedOptions): Promise<Message>;
 
-    success(message: string): Promise<Message>;
+    success(description: string): Promise<Message>;
 
-    error(options: Partial<CustomMessageOptions>): Promise<Message>;
+    error(options: SendEmbedOptions): Promise<Message>;
 
-    error(message: string): Promise<Message>;
+    error(description: string): Promise<Message>;
   }
 }
