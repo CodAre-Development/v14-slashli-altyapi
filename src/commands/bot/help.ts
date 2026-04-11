@@ -4,10 +4,7 @@ import { commands } from '@/loaders/command';
 import { defineCommand } from '@/utils/define';
 
 export default defineCommand({
-  data: new SlashCommandBuilder()
-    .setName('help')
-    .setDescription('View information about the bot and its commands')
-    .addStringOption((o) => o.setName('command').setDescription('The command you want to get information about')),
+  data: new SlashCommandBuilder().setName('help').addStringOption((o) => o.setName('command')),
   config: {
     category: 'Bot'
   },

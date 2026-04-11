@@ -1,4 +1,5 @@
 {
+  "$schema": "./schema.json",
   "help": {
     "name": "help",
     "description": "View information about the bot and its commands",

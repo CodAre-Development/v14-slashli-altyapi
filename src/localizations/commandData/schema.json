@@ -1,0 +1,46 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "properties": {
+    "$schema": { "type": "string" }
+  },
+  "additionalProperties": {
+    "$ref": "#/$defs/CommandLocalization"
+  },
+  "$defs": {
+    "CommandLocalization": {
+      "type": "object",
+      "required": ["name", "description"],
+      "additionalProperties": false,
+      "properties": {
+        "name": { "type": "string" },
+        "description": { "type": "string" },
+        "options": {
+          "type": "object",
+          "additionalProperties": {
+            "$ref": "#/$defs/OptionLocalization"
+          }
+        }
+      }
+    },
+    "OptionLocalization": {
+      "type": "object",
+      "required": ["name", "description"],
+      "additionalProperties": false,
+      "properties": {
+        "name": { "type": "string" },
+        "description": { "type": "string" },
+        "options": {
+          "type": "object",
+          "additionalProperties": {
+            "$ref": "#/$defs/OptionLocalization"
+          }
+        },
+        "choices": {
+          "type": "object",
+          "additionalProperties": { "type": "string" }
+        }
+      }
+    }
+  }
+}

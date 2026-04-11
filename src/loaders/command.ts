@@ -15,11 +15,17 @@ import type { CommandData } from '@/types';
 import { env } from '@/utils/env';
 import { logger } from '@/utils/logger';
 
+type OptionLocalization = {
+  name: string;
+  description: string;
+  options?: Record<string, OptionLocalization>;
+  choices?: Record<string, string>;
+};
+
 type CommandLocalization = {
   name: string;
   description: string;
-  options?: Record<string, CommandLocalization>;
-  choices?: Record<string, string>;
+  options?: Record<string, OptionLocalization>;
 };
 
 type LocalizationFile = Record<string, CommandLocalization>;
@@ -63,10 +69,9 @@ export async function loadCommands(registerToDiscord = false) {
   }
 
   if (registerToDiscord) {
-    const token = env.BOT_TOKEN;
     // biome-ignore lint/style/noNonNullAssertion: It will exist
-    const clientId = Buffer.from(token.split('.')[0]!, 'base64').toString();
-    const rest = new REST({ version: '10' }).setToken(token);
+    const clientId = Buffer.from(env.BOT_TOKEN.split('.')[0]!, 'base64').toString();
+    const rest = new REST({ version: '10' }).setToken(env.BOT_TOKEN);
     await rest.put(Routes.applicationCommands(clientId), { body: publicCommands });
     logger.info({ scope: 'global' }, 'Registered application commands');
 
@@ -82,8 +87,11 @@ export async function loadCommands(registerToDiscord = false) {
 function setLocalizations(
   lang: Locale,
   command: SlashCommandBuilder | SlashCommandOptionsOnlyBuilder | SlashCommandSubcommandsOnlyBuilder,
-  commandData: CommandLocalization
+  commandData: CommandLocalization | OptionLocalization
 ) {
+  const isDefault = lang === config.bot.defaultLanguage;
+  if (isDefault) command.setDescription(commandData.description);
+
   command.setNameLocalization(lang, commandData.name);
   command.setDescriptionLocalization(lang, commandData.description);
 

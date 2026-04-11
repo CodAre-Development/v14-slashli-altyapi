@@ -2,7 +2,7 @@ import { SlashCommandBuilder } from 'discord.js';
 import { defineCommand } from '@/utils/define';
 
 export default defineCommand({
-  data: new SlashCommandBuilder().setName('ping').setDescription("Check the bot's latency and response time"),
+  data: new SlashCommandBuilder().setName('ping'),
   config: {
     category: 'Bot'
   },
