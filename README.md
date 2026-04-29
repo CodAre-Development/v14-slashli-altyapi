@@ -1,8 +1,8 @@
-# 🤖 Discord Bot Template
+# Discord Bot Template
 
 A TypeScript template for creating Discord bots with discord.js and Bun.
 
-## 📦 Setup
+## Setup
 
 1. Clone the repo and install dependencies:
 
@@ -26,9 +26,9 @@ bun register
 bun start
 ```
 
-## ✨ Features
+## Features
 
-### ⚙️ Command Handler
+### Command Handler
 
 Commands are organized under `src/commands`. Each command uses `defineCommand` and supports per-subcommand config overrides:
 
@@ -50,22 +50,18 @@ defineCommand({
 });
 ```
 
-### 🌐 Localization
+### Localization
 
 Translations live in `src/localizations`. To add a new language:
 
 1. Create `src/localizations/<code>.json`
-2. Create `src/localizations/slashCommands/<code>.json` for command name/description localizations
+2. Create `src/localizations/commandData/<code>.json` for command name/description localizations
 3. Add the locale to `supportedLanguages` in `src/config.ts`
 
-### 🛠 Interaction Utilities
+### Interaction Utilities
 
 These are available on any interaction:
 
-- `interaction.success(message | options)` — sends a success embed
-- `interaction.error(message | options)` — sends an error embed
-- `interaction.translate(key, options)` — translates a key using the interaction's locale
-
-## 📝 License
-
-This project is licensed under the [MIT License](./LICENSE).
+- `interaction.success(message | options)` - sends a success embed
+- `interaction.error(message | options)` - sends an error embed
+- `interaction.translate(key, options)` - translates a key using the interaction's locale

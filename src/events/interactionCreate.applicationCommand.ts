@@ -13,14 +13,27 @@ export async function applicationCommandHandler(client: Client, interaction: Cha
   const isSupportServer = guildId === config.guilds.supportServer.id || guildId === config.guilds.test.id;
   const isAdmin = config.bot.admins.includes(interaction.user.id);
 
-  if (cfg.botAdminsOnly && !isAdmin) return interaction.error(interaction.translate('commandErrors.botAdminsOnly'));
-  if (cfg.disabled) return interaction.error(interaction.translate('commandErrors.disabled'));
-  if (cfg.dmOnly && interaction.guild) return interaction.error(interaction.translate('commandErrors.dmOnly'));
-  if (cfg.guildOnly && !interaction.guild) return interaction.error(interaction.translate('commandErrors.guildOnly'));
-  if (cfg.supportServerOnly && !isSupportServer)
+  if (cfg.botAdminsOnly && !isAdmin) {
+    return interaction.error(interaction.translate('commandErrors.botAdminsOnly'));
+  }
+
+  if (cfg.disabled) {
+    return interaction.error(interaction.translate('commandErrors.disabled'));
+  }
+
+  if (cfg.dmOnly && interaction.guild) {
+    return interaction.error(interaction.translate('commandErrors.dmOnly'));
+  }
+
+  if (cfg.guildOnly && !interaction.guild) {
+    return interaction.error(interaction.translate('commandErrors.guildOnly'));
+  }
+
+  if (cfg.supportServerOnly && !isSupportServer) {
     return interaction.error(
       interaction.translate('commandErrors.supportServerOnly', { invite: config.guilds.supportServer.invite })
     );
+  }
 
   if (guildId) {
     const guild = await client.guilds.fetch(guildId);
