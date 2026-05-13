@@ -56,7 +56,7 @@ Translations live in `src/localizations`. To add a new language:
 
 1. Create `src/localizations/<code>.json`
 2. Create `src/localizations/commandData/<code>.json` for command name/description localizations
-3. Add the locale to `supportedLanguages` in `src/config.ts`
+3. Add the locale to `supportedLanguages` in `src/shared/config.ts`
 
 ### Interaction Utilities
 

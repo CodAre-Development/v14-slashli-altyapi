@@ -1,8 +1,11 @@
 import { Glob } from 'bun';
 import {
   ApplicationIntegrationType,
+  type ChatInputCommandInteraction,
+  type Client,
   InteractionContextType,
   type Locale,
+  type PermissionResolvable,
   REST,
   Routes,
   type SlashCommandBuilder,
@@ -10,10 +13,30 @@ import {
   type SlashCommandStringOption,
   type SlashCommandSubcommandsOnlyBuilder
 } from 'discord.js';
-import { config } from '@/config';
-import type { CommandData } from '@/types';
-import { env } from '@/utils/env';
-import { logger } from '@/utils/logger';
+import { config } from '@/shared/config';
+import { logger } from '@/shared/logger';
+
+export type CommandData = SlashCommandBuilder | SlashCommandOptionsOnlyBuilder | SlashCommandSubcommandsOnlyBuilder;
+
+export type ResolvedCommandConfig = {
+  category: 'Bot' | 'Moderation' | 'Admin';
+  guildOnly?: boolean;
+  dmOnly?: boolean;
+  supportServerOnly?: boolean;
+  memberPermissions?: PermissionResolvable[];
+  botPermissions?: PermissionResolvable[];
+  botAdminsOnly?: boolean;
+  disabled?: boolean;
+};
+
+type MaybePerSubcommand<T> = T | Record<string, T>;
+export type CommandConfig = { [K in keyof ResolvedCommandConfig]: MaybePerSubcommand<ResolvedCommandConfig[K]> };
+
+export type Command = {
+  data: CommandData;
+  config: CommandConfig;
+  run: (options: { client: Client<true>; interaction: ChatInputCommandInteraction }) => Promise<unknown>;
+};
 
 type OptionLocalization = {
   name: string;
@@ -30,10 +53,12 @@ type CommandLocalization = {
 
 type LocalizationFile = Record<string, CommandLocalization>;
 
-export const commands: CommandData[] = [];
+export const commandList: Command[] = [];
 
 export async function loadCommands(registerToDiscord = false) {
   const localizations = {} as Record<Locale, LocalizationFile>;
+  commandList.length = 0;
+
   for (const [locale, filePath] of Object.entries(config.bot.supportedLanguages)) {
     const data = await importLanguageFile(filePath);
     if (!data) continue;
@@ -42,12 +67,14 @@ export async function loadCommands(registerToDiscord = false) {
   }
 
   const glob = new Glob('./src/commands/**/*.ts');
-  const publicCommands: CommandData['data'][] = [];
-  const adminCommands: CommandData['data'][] = [];
+  const publicCommands: CommandData[] = [];
+  const adminCommands: CommandData[] = [];
 
   for await (const fileName of glob.scan('.')) {
-    const cmd: CommandData = (await import(`../../${fileName.replace(/\\/g, '/')}`)).default;
-    if (!cmd.config.botAdminsOnly) {
+    const cmd: Command = (await import(`../../${fileName.replace(/\\/g, '/')}`)).default;
+    const botAdminsOnly = resolveConfigValue(cmd.config.botAdminsOnly) === true;
+
+    if (!botAdminsOnly) {
       cmd.data
         .setContexts([
           InteractionContextType.Guild,
@@ -63,32 +90,29 @@ export async function loadCommands(registerToDiscord = false) {
       if (commandData) setLocalizations(language, cmd.data, commandData);
     }
 
-    const commandList = cmd.config.botAdminsOnly ? adminCommands : publicCommands;
-    commandList.push(cmd.data);
-    commands.push(cmd);
+    const commandListForRegistration = botAdminsOnly ? adminCommands : publicCommands;
+    commandListForRegistration.push(cmd.data);
+
+    commandList.push(cmd);
   }
 
   if (registerToDiscord) {
     // biome-ignore lint/style/noNonNullAssertion: It will exist
-    const clientId = Buffer.from(env.BOT_TOKEN.split('.')[0]!, 'base64').toString();
-    const rest = new REST({ version: '10' }).setToken(env.BOT_TOKEN);
+    const clientId = Buffer.from(config.bot.token.split('.')[0]!, 'base64').toString();
+    const rest = new REST({ version: '10' }).setToken(config.bot.token);
     await rest.put(Routes.applicationCommands(clientId), { body: publicCommands });
     logger.info({ scope: 'global' }, 'Registered application commands');
 
-    if (config.guilds.test && adminCommands.length) {
-      await rest.put(Routes.applicationGuildCommands(clientId, config.guilds.test.id), {
-        body: adminCommands
-      });
-      logger.info({ scope: 'guild', guildId: config.guilds.test }, 'Registered application commands');
+    const testGuildId = config.guilds.test.id;
+    if (testGuildId && adminCommands.length) {
+      const route = Routes.applicationGuildCommands(clientId, testGuildId);
+      await rest.put(route, { body: adminCommands });
+      logger.info({ scope: 'guild', guildId: testGuildId }, 'Registered application commands');
     }
   }
 }
 
-function setLocalizations(
-  lang: Locale,
-  command: SlashCommandBuilder | SlashCommandOptionsOnlyBuilder | SlashCommandSubcommandsOnlyBuilder,
-  commandData: CommandLocalization | OptionLocalization
-) {
+function setLocalizations(lang: Locale, command: CommandData, commandData: CommandLocalization | OptionLocalization) {
   const isDefault = lang === config.bot.defaultLanguage;
   if (isDefault) command.setDescription(commandData.description);
 
@@ -124,4 +148,13 @@ async function importLanguageFile(lang: string) {
   } catch {
     return null;
   }
+}
+
+function resolveConfigValue<T>(value: MaybePerSubcommand<T> | undefined): T | undefined {
+  if (value == null) return undefined;
+  if (!Array.isArray(value) && typeof value === 'object') {
+    return (value as Record<string, T>)['*'];
+  }
+
+  return value;
 }

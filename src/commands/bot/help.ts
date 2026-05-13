@@ -1,6 +1,6 @@
-import { EmbedBuilder, SlashCommandBuilder } from 'discord.js';
-import { config } from '@/config';
-import { commands } from '@/loaders/command';
+import { EmbedBuilder, OAuth2Scopes, PermissionFlagsBits, SlashCommandBuilder } from 'discord.js';
+import { commandList } from '@/loaders/command';
+import { config } from '@/shared/config';
 import { defineCommand } from '@/utils/define';
 
 export default defineCommand({
@@ -10,7 +10,7 @@ export default defineCommand({
   },
   run: async ({ client, interaction }) => {
     const commandName = interaction.options.getString('command')?.split(' ')[0];
-    const command = commandName && commands.find((x) => x.data.name.toLowerCase() === commandName.toLowerCase());
+    const command = commandName && commandList.find((x) => x.data.name.toLowerCase() === commandName.toLowerCase());
 
     const embed = new EmbedBuilder()
       .setTitle(interaction.translate('commands.help.embed.title'))
@@ -35,12 +35,23 @@ ${interaction.translate('commands.help.info.category')}: ${command.config.catego
         }
       ]);
     } else {
+      const botInvite = client.generateInvite({
+        permissions: [
+          PermissionFlagsBits.SendMessages,
+          PermissionFlagsBits.SendMessagesInThreads,
+          PermissionFlagsBits.EmbedLinks,
+          PermissionFlagsBits.AttachFiles,
+          PermissionFlagsBits.UseExternalEmojis
+        ],
+        scopes: [OAuth2Scopes.Bot, OAuth2Scopes.ApplicationsCommands]
+      });
+
       embed.setDescription(interaction.translate('commands.help.embed.description')).setFields([
         {
           name: interaction.translate('commands.help.links.title'),
           value: `
 🛠 [${interaction.translate('commands.help.links.supportServer')}](${config.guilds.supportServer.invite})
-🔗 [${interaction.translate('commands.help.links.invite')}](${client.getInviteURL()})
+🔗 [${interaction.translate('commands.help.links.invite')}](${botInvite})
 `
         }
       ]);

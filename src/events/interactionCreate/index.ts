@@ -1,6 +1,6 @@
 import { Events, InteractionType } from 'discord.js';
-import { config } from '@/config';
-import { applicationCommandHandler } from '@/events/interactionCreate.applicationCommand';
+import { applicationCommandHandler } from '@/events/interactionCreate/applicationCommand';
+import { config } from '@/shared/config';
 import { defineEvent } from '@/utils/define';
 
 const handlers: Partial<Record<InteractionType, CallableFunction>> = {
@@ -13,8 +13,8 @@ export default defineEvent({
     const handler = handlers[interaction.type];
     if (!handler) return;
 
-    const isLanguageSupported = Object.keys(config.bot.supportedLanguages).includes(interaction.locale);
-    interaction.language = isLanguageSupported ? interaction.locale : config.bot.defaultLanguage;
+    const isLangSupported = interaction.locale in config.bot.supportedLanguages;
+    interaction.language = isLangSupported ? interaction.locale : config.bot.defaultLanguage;
 
     return handler(client, interaction);
   }

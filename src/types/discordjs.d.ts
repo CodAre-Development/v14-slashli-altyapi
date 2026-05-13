@@ -7,11 +7,9 @@ declare module 'discord.js' {
     translate: TFunction;
 
     success(options: SendEmbedOptions): Promise<Message>;
-
     success(description: string): Promise<Message>;
 
     error(options: SendEmbedOptions): Promise<Message>;
-
     error(description: string): Promise<Message>;
   }
 }

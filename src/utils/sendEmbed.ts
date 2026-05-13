@@ -6,7 +6,7 @@ import {
   MessageFlags,
   resolveColor
 } from 'discord.js';
-import { config } from '@/config';
+import { config } from '@/shared/config';
 
 export type SendEmbedOptions = Omit<EmbedData, 'image' | 'thumbnail' | 'color'> & {
   image?: string;
