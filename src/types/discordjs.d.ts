@@ -4,7 +4,7 @@ import type { SendEmbedOptions } from '@/utils/sendEmbed';
 declare module 'discord.js' {
   interface BaseInteraction {
     language: string;
-    translate: TFunction;
+    t: TFunction;
 
     success(options: SendEmbedOptions): Promise<Message>;
     success(description: string): Promise<Message>;

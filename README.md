@@ -30,7 +30,7 @@ bun start
 
 ### Command Handler
 
-Commands are organized under `src/commands`. Each command uses `defineCommand` and supports per-subcommand config overrides:
+Commands are organized under `src/commands`. Each command supports per-subcommand config overrides:
 
 ```ts
 defineCommand({

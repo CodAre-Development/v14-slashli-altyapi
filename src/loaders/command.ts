@@ -30,7 +30,11 @@ export type ResolvedCommandConfig = {
 };
 
 type MaybePerSubcommand<T> = T | Record<string, T>;
-export type CommandConfig = { [K in keyof ResolvedCommandConfig]: MaybePerSubcommand<ResolvedCommandConfig[K]> };
+export type CommandConfig = {
+  [K in keyof ResolvedCommandConfig]: K extends 'botAdminsOnly'
+    ? ResolvedCommandConfig[K]
+    : MaybePerSubcommand<ResolvedCommandConfig[K]>;
+};
 
 export type Command = {
   data: CommandData;
@@ -70,10 +74,9 @@ export async function loadCommands(registerToDiscord = false) {
   const publicCommands: CommandData[] = [];
   const adminCommands: CommandData[] = [];
 
-  for await (const fileName of glob.scan('.')) {
-    const cmd: Command = (await import(`../../${fileName.replace(/\\/g, '/')}`)).default;
-    const botAdminsOnly = resolveConfigValue(cmd.config.botAdminsOnly) === true;
-
+  for await (const filePath of glob.scan({ absolute: true })) {
+    const cmd: Command = (await import(filePath)).default;
+    const botAdminsOnly = cmd.config.botAdminsOnly;
     if (!botAdminsOnly) {
       cmd.data
         .setContexts([
@@ -97,7 +100,7 @@ export async function loadCommands(registerToDiscord = false) {
   }
 
   if (registerToDiscord) {
-    // biome-ignore lint/style/noNonNullAssertion: It will exist
+    // biome-ignore lint/style/noNonNullAssertion: Impossible for this to be null, the token is validated on startup
     const clientId = Buffer.from(config.bot.token.split('.')[0]!, 'base64').toString();
     const rest = new REST({ version: '10' }).setToken(config.bot.token);
     await rest.put(Routes.applicationCommands(clientId), { body: publicCommands });
@@ -148,13 +151,4 @@ async function importLanguageFile(lang: string) {
   } catch {
     return null;
   }
-}
-
-function resolveConfigValue<T>(value: MaybePerSubcommand<T> | undefined): T | undefined {
-  if (value == null) return undefined;
-  if (!Array.isArray(value) && typeof value === 'object') {
-    return (value as Record<string, T>)['*'];
-  }
-
-  return value;
 }

@@ -1,4 +1,4 @@
-import { ActivityType, Locale, type PresenceData, resolveColor } from 'discord.js';
+import { Locale, resolveColor } from 'discord.js';
 import type { Level } from 'pino';
 import { z } from 'zod';
 import { logger } from '@/shared/logger';
@@ -13,12 +13,21 @@ function zEnum<const T extends readonly [string, ...string[]]>(values: T, fallba
 
 const optionalString = z.preprocess(emptyToUndefined, z.string().optional());
 const requiredString = z.preprocess(emptyToUndefined, z.string().min(1));
+const stringArray = z.preprocess((value) => {
+  const v = emptyToUndefined(value);
+  if (typeof v !== 'string') return [];
+
+  return v
+    .split(',')
+    .map((s) => s.trim())
+    .filter(Boolean);
+}, z.array(z.string()));
 
 const envSchema = z.object({
   NODE_ENV: zEnum(['development', 'production'], 'development'),
   BOT_TOKEN: requiredString,
   LOG_LEVEL: zEnum(['trace', 'debug', 'info', 'warn', 'error', 'fatal'] as const satisfies readonly Level[], 'info'),
-  BOT_ADMINS: optionalString,
+  BOT_ADMINS: stringArray,
   SUPPORT_SERVER_ID: optionalString,
   SUPPORT_SERVER_INVITE: optionalString,
   TEST_GUILD_ID: optionalString
@@ -39,7 +48,7 @@ export const config = {
   env: parsed.data.NODE_ENV,
   bot: {
     token: parsed.data.BOT_TOKEN,
-    admins: parseList(parsed.data.BOT_ADMINS),
+    admins: parsed.data.BOT_ADMINS,
     // These values must match the language codes in the filenames of the files in the localizations folder
     supportedLanguages: {
       [Locale.EnglishUS]: 'en',
@@ -48,15 +57,6 @@ export const config = {
     },
     defaultLanguage: Locale.EnglishUS
   },
-  presence: {
-    activities: [
-      {
-        type: ActivityType.Watching,
-        name: 'your commands'
-      }
-    ],
-    status: 'online'
-  } satisfies PresenceData,
   guilds: {
     test: {
       id: parsed.data.TEST_GUILD_ID ?? ''
@@ -72,12 +72,3 @@ export const config = {
     success: resolveColor('#56B849')
   }
 } as const;
-
-function parseList(value?: string) {
-  if (!value) return [];
-
-  return value
-    .split(',')
-    .map((item) => item.trim())
-    .filter(Boolean);
-}

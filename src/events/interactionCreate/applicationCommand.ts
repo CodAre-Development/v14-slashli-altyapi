@@ -13,71 +13,67 @@ export async function applicationCommandHandler(client: Client<true>, interactio
   const isAdmin = config.bot.admins.includes(interaction.user.id);
 
   if (cfg.botAdminsOnly && !isAdmin) {
-    return interaction.error(interaction.translate('commandErrors.botAdminsOnly'));
+    return interaction.error(interaction.t('commandErrors.botAdminsOnly'));
   }
 
   if (cfg.disabled) {
-    return interaction.error(interaction.translate('commandErrors.disabled'));
+    return interaction.error(interaction.t('commandErrors.disabled'));
   }
 
   if (cfg.dmOnly && interaction.inGuild()) {
-    return interaction.error(interaction.translate('commandErrors.dmOnly'));
+    return interaction.error(interaction.t('commandErrors.dmOnly'));
   }
 
   if (cfg.guildOnly && !interaction.inGuild()) {
-    return interaction.error(interaction.translate('commandErrors.guildOnly'));
+    return interaction.error(interaction.t('commandErrors.guildOnly'));
   }
 
   if (cfg.supportServerOnly && !isSupportServer) {
     return interaction.error(
-      interaction.translate('commandErrors.supportServerOnly', { invite: config.guilds.supportServer.invite })
+      interaction.t('commandErrors.supportServerOnly', { invite: config.guilds.supportServer.invite })
     );
   }
 
   try {
     if (interaction.inGuild() && (cfg.memberPermissions?.length || cfg.botPermissions?.length)) {
       const { memberPermissions, botPermissions } = await resolvePermissions(client, interaction);
-      const permissions: Record<string, string> = interaction.translate('permissions', { returnObjects: true });
+      const permissions: Record<string, string> = interaction.t('permissions', { returnObjects: true });
 
       const missingMember = cfg.memberPermissions?.filter((p) => !memberPermissions?.has(p));
       const missingBot = cfg.botPermissions?.filter((p) => !botPermissions?.has(p));
 
       if (missingMember?.length) {
         const formatted = missingMember.map((p) => `\`${permissions[p.toString()] || p.toString()}\``).join(', ');
-        return interaction.error(
-          interaction.translate('commandErrors.userMissingPermissions', { permissions: formatted })
-        );
+        return interaction.error(interaction.t('commandErrors.userMissingPermissions', { permissions: formatted }));
       }
 
       if (missingBot?.length) {
         const formatted = missingBot.map((p) => `\`${permissions[p.toString()] || p.toString()}\``).join(', ');
-        return interaction.error(
-          interaction.translate('commandErrors.botMissingPermissions', { permissions: formatted })
-        );
+        return interaction.error(interaction.t('commandErrors.botMissingPermissions', { permissions: formatted }));
       }
     }
 
     await cmd.run({ client, interaction });
   } catch (err) {
     logger.error({ err, command: interaction.commandName }, 'Command execution failed');
-    await interaction.error(interaction.translate('commandErrors.unexpectedError'));
+    await interaction.error(interaction.t('commandErrors.unexpectedError'));
   }
 }
 
-function resolveConfig(config: CommandConfig, interaction: ChatInputCommandInteraction) {
+function resolveConfig(config: CommandConfig, interaction: ChatInputCommandInteraction): ResolvedCommandConfig {
   const subcommandGroup = interaction.options.getSubcommandGroup(false);
   const subcommand = interaction.options.getSubcommand(false);
   const key = [subcommandGroup, subcommand].filter(Boolean).join(' ');
 
-  return Object.fromEntries(
-    Object.entries(config).map(([k, v]) => {
-      if (!Array.isArray(v) && v != null && typeof v === 'object') {
-        return [k, (v as Record<string, unknown>)[key] ?? v['*'] ?? null];
-      }
+  const entries = Object.entries(config).map(([k, v]) => {
+    const isSubcommandMap = v !== null && typeof v === 'object' && !Array.isArray(v);
+    if (!isSubcommandMap) return [k, v];
 
-      return [k, v];
-    })
-  ) as ResolvedCommandConfig;
+    const map = v as Record<string, unknown>;
+    return [k, map[key] ?? map['*'] ?? null];
+  });
+
+  return Object.fromEntries(entries) as ResolvedCommandConfig;
 }
 
 async function resolvePermissions(

@@ -9,8 +9,8 @@ export type Event<T extends keyof ClientEvents> = {
 
 export async function loadEvents(client: Client<true>) {
   const glob = new Glob('./src/events/**/*.ts');
-  for await (const fileName of glob.scan('.')) {
-    const event = (await import(`../../${fileName.replace(/\\/g, '/')}`)).default;
+  for await (const filePath of glob.scan({ absolute: true })) {
+    const event = (await import(filePath)).default;
     if (!isEvent(event)) continue;
 
     client[event.once ? 'once' : 'on'](event.name, (...params: unknown[]) => event.run(client, ...params));

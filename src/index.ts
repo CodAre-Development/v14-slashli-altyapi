@@ -1,4 +1,4 @@
-import { BaseInteraction, Client, Events, GatewayIntentBits } from 'discord.js';
+import { ActivityType, BaseInteraction, Client, Events, GatewayIntentBits, PresenceUpdateStatus } from 'discord.js';
 import type { TFunction, TOptions } from 'i18next';
 import i18next from 'i18next';
 import { loadCommands } from '@/loaders/command';
@@ -17,7 +17,16 @@ process.on('warning', (err) => logger.warn({ err }));
 
 const client = new Client({
   intents: [GatewayIntentBits.Guilds],
-  presence: config.presence
+  presence: {
+    activities: [
+      {
+        type: ActivityType.Custom,
+        name: 'not visible',
+        state: 'Hello'
+      }
+    ],
+    status: PresenceUpdateStatus.Online
+  }
 });
 
 await setupI18n();
@@ -67,25 +76,23 @@ function extendBaseInteraction() {
   Object.defineProperties(BaseInteraction.prototype, {
     error: {
       value(optionsOrDesc: SendEmbedOptions | string) {
-        let options: SendEmbedOptions | string = optionsOrDesc;
-        if (typeof options === 'string') {
-          options = { description: options };
+        if (typeof optionsOrDesc === 'string') {
+          optionsOrDesc = { description: optionsOrDesc };
         }
 
-        return sendEmbed(this, { ...options, embedType: 'error' });
+        return sendEmbed(this, { ...optionsOrDesc, embedType: 'error' });
       }
     },
     success: {
       value(optionsOrDesc: SendEmbedOptions | string) {
-        let options: SendEmbedOptions | string = optionsOrDesc;
-        if (typeof options === 'string') {
-          options = { description: options };
+        if (typeof optionsOrDesc === 'string') {
+          optionsOrDesc = { description: optionsOrDesc };
         }
 
-        return sendEmbed(this, { ...options, embedType: 'success' });
+        return sendEmbed(this, { ...optionsOrDesc, embedType: 'success' });
       }
     },
-    translate: {
+    t: {
       value(...args: Parameters<TFunction>) {
         const options: TOptions = typeof args[1] === 'object' && args[1] != null ? args[1] : {};
         if (!options.lng) options.lng = this.language || this.locale;

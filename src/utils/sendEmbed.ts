@@ -19,7 +19,7 @@ export async function sendEmbed(
   interaction: ChatInputCommandInteraction,
   options: SendEmbedOptions & { embedType: 'error' | 'success' }
 ) {
-  const titles = interaction.translate(`embedTitles.${options.embedType}`, {
+  const titles = interaction.t(`embedTitles.${options.embedType}`, {
     returnObjects: true
   });
 
