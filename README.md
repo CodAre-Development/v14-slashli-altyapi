@@ -1,8 +1,8 @@
 # Discord Bot Template
 
-A TypeScript template for creating Discord bots with discord.js and Bun.
+A TypeScript template for building Discord bots with discord.js and Bun.
 
-## Setup
+## Quick Start
 
 1. Clone the repo and install dependencies:
 
@@ -13,7 +13,8 @@ bun install
 cp .env.example .env
 ```
 
-2. Fill in your `.env` file.
+2. Fill in `.env`.
+
 3. Register slash commands:
 
 ```sh
@@ -26,11 +27,9 @@ bun register
 bun start
 ```
 
-## Features
+## Command Handler
 
-### Command Handler
-
-Commands are organized under `src/commands`. Each command supports per-subcommand config overrides:
+Each command supports per-subcommand config overrides:
 
 ```ts
 defineCommand({
@@ -39,29 +38,36 @@ defineCommand({
     category: "Bot",
     guildOnly: true,
     disabled: {
-      "*": false, // default
-      subcommandName: true, // only for "subcommandName"
-      "subcommandGroupName subcommandName": true, // only for "subcommandName" in "subcommandGroupName"
+      "*": false,
+      subcommandName: true,
+      "subcommandGroupName subcommandName": true,
     },
   },
   run: async ({ client, interaction }) => {
-    // command logic
-  },
+    /* ... */
+  }
 });
 ```
 
-### Localization
+> [!IMPORTANT]
+> Do not set descriptions in `SlashCommandBuilder()` when the command is localized.  
+> The command loader already sets the default description using the default language and applies localized names, descriptions etc automatically.
+
+## Localization
 
 Translations live in `src/localizations`. To add a new language:
 
-1. Create `src/localizations/<code>.json`
-2. Create `src/localizations/commandData/<code>.json` for command name/description localizations
-3. Add the locale to `supportedLanguages` in `src/shared/config.ts`
+1. Add the runtime translation file at `src/localizations/<code>.json`.
+2. Add the command registration file at `src/localizations/commandData/<code>.json`.
+3. Add the locale mapping in `src/shared/config.ts`.
 
-### Interaction Utilities
+> [!IMPORTANT]
+> Keep the language codes in `supportedLanguages` aligned with the filenames in both localization folders.
 
-These are available on any interaction:
+## Interaction Helpers
 
-- `interaction.success(message | options)` - sends a success embed
-- `interaction.error(message | options)` - sends an error embed
-- `interaction.translate(key, options)` - translates a key using the interaction's locale
+These helpers are added to every interaction:
+
+- `interaction.success(message | options)` sends a success embed.
+- `interaction.error(message | options)` sends an error embed.
+- `interaction.t(key, options)` translates a key using the interaction's locale.
