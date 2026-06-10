@@ -19,7 +19,7 @@ import { logger } from '@/shared/logger';
 export type CommandData = SlashCommandBuilder | SlashCommandOptionsOnlyBuilder | SlashCommandSubcommandsOnlyBuilder;
 
 export type ResolvedCommandConfig = {
-  category: 'Bot' | 'Moderation' | 'Admin';
+  category: 'bot' | 'moderation' | 'admin';
   guildOnly?: boolean;
   dmOnly?: boolean;
   supportServerOnly?: boolean;

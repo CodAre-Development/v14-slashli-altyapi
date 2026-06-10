@@ -4,7 +4,7 @@ import { defineCommand } from '@/utils/define';
 export default defineCommand({
   data: new SlashCommandBuilder().setName('ping'),
   config: {
-    category: 'Bot'
+    category: 'bot'
   },
   run: async ({ client, interaction }) => {
     const before = performance.now();

@@ -6,10 +6,14 @@
         "title": "Yardım Menüsü",
         "description": "Bu çok kullanışlı bir yardım menüsü."
       },
-      "info": {
-        "title": "Bilgiler",
-        "description": "Açıklama",
+      "details": {
+        "title": "Detaylar",
         "category": "Kategori"
+      },
+      "categories": {
+        "bot": "Bot",
+        "moderation": "Moderasyon",
+        "admin": "Yönetim"
       },
       "links": {
         "title": "Linkler",

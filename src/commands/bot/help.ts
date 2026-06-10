@@ -6,32 +6,37 @@ import { defineCommand } from '@/utils/define';
 export default defineCommand({
   data: new SlashCommandBuilder().setName('help').addStringOption((o) => o.setName('command')),
   config: {
-    category: 'Bot'
+    category: 'bot'
   },
   run: async ({ client, interaction }) => {
-    const commandName = interaction.options.getString('command')?.split(' ')[0];
-    const command = commandName && commandList.find((x) => x.data.name.toLowerCase() === commandName.toLowerCase());
+    const commandName = interaction.options.getString('command');
+    const cmd = commandName && commandList.find((x) => x.data.name.toLowerCase() === commandName.toLowerCase());
 
     const embed = new EmbedBuilder()
-      .setTitle(interaction.t('commands.help.embed.title'))
       .setColor(config.embedColors.default)
-      .setAuthor({ name: client.user.username, iconURL: client.user.displayAvatarURL() })
-      .setThumbnail(client.user.displayAvatarURL());
+      .setAuthor({ name: client.user.username, iconURL: client.user.displayAvatarURL() });
 
     if (commandName) {
-      if (!command || command.config.botAdminsOnly) {
+      if (!cmd || cmd.config.botAdminsOnly) {
         return interaction.error(interaction.t('commands.help.commandNotFound', { name: `\`${commandName}\`` }));
       }
 
-      embed.setDescription(command.data.description).setFields([
-        {
-          name: interaction.t('commands.help.info.title'),
-          value: `
-${interaction.t('commands.help.info.description')}: ${command.data.description}
-${interaction.t('commands.help.info.category')}: ${command.config.category}
+      const name = cmd.data.name_localizations?.[interaction.language] || cmd.data.name;
+      const description = cmd.data.description_localizations?.[interaction.language] || cmd.data.description;
+      // biome-ignore lint/style/noNonNullAssertion: Category is required and can't be null
+      const category = typeof cmd.config.category === 'string' ? cmd.config.category : cmd.config.category['*']!;
+
+      embed
+        .setTitle(name.replace(/\b\w/g, (c) => c.toUpperCase()))
+        .setDescription(description)
+        .setFields([
+          {
+            name: interaction.t('commands.help.details.title'),
+            value: `
+**${interaction.t('commands.help.details.category')}**: ${interaction.t(`commands.help.categories.${category}`)}
 `
-        }
-      ]);
+          }
+        ]);
     } else {
       const botInvite = client.generateInvite({
         permissions: [
@@ -44,19 +49,20 @@ ${interaction.t('commands.help.info.category')}: ${command.config.category}
         scopes: [OAuth2Scopes.Bot, OAuth2Scopes.ApplicationsCommands]
       });
 
-      embed.setDescription(interaction.t('commands.help.embed.description')).setFields([
-        {
-          name: interaction.t('commands.help.links.title'),
-          value: `
+      embed
+        .setTitle(interaction.t('commands.help.embed.title'))
+        .setDescription(interaction.t('commands.help.embed.description'))
+        .setFields([
+          {
+            name: interaction.t('commands.help.links.title'),
+            value: `
 🛠 [${interaction.t('commands.help.links.supportServer')}](${config.guilds.supportServer.invite})
 🔗 [${interaction.t('commands.help.links.invite')}](${botInvite})
 `
-        }
-      ]);
+          }
+        ]);
     }
 
-    return interaction.reply({
-      embeds: [embed]
-    });
+    return interaction.reply({ embeds: [embed] });
   }
 });

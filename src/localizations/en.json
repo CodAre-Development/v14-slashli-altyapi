@@ -6,10 +6,14 @@
         "title": "Help Menu",
         "description": "This is a very useful help menu."
       },
-      "info": {
-        "title": "Information",
-        "description": "Description",
+      "details": {
+        "title": "Details",
         "category": "Category"
+      },
+      "categories": {
+        "bot": "Bot",
+        "moderation": "Moderation",
+        "admin": "Admin"
       },
       "links": {
         "title": "Links",
