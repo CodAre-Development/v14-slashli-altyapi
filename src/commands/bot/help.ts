@@ -18,7 +18,7 @@ export default defineCommand({
 
     if (commandName) {
       if (!cmd || cmd.config.botAdminsOnly) {
-        return interaction.error(interaction.t('commands.help.commandNotFound', { name: `\`${commandName}\`` }));
+        return interaction.error(interaction.t('cmds.help.commandNotFound', { name: `\`${commandName}\`` }));
       }
 
       const name = cmd.data.name_localizations?.[interaction.language] || cmd.data.name;
@@ -31,9 +31,9 @@ export default defineCommand({
         .setDescription(description)
         .setFields([
           {
-            name: interaction.t('commands.help.details.title'),
+            name: interaction.t('cmds.help.details.title'),
             value: `
-**${interaction.t('commands.help.details.category')}**: ${interaction.t(`commands.help.categories.${category}`)}
+**${interaction.t('cmds.help.details.category')}**: ${interaction.t(`cmds.help.categories.${category}`)}
 `
           }
         ]);
@@ -50,14 +50,14 @@ export default defineCommand({
       });
 
       embed
-        .setTitle(interaction.t('commands.help.embed.title'))
-        .setDescription(interaction.t('commands.help.embed.description'))
+        .setTitle(interaction.t('cmds.help.embed.title'))
+        .setDescription(interaction.t('cmds.help.embed.description'))
         .setFields([
           {
-            name: interaction.t('commands.help.links.title'),
+            name: interaction.t('cmds.help.links.title'),
             value: `
-🛠 [${interaction.t('commands.help.links.supportServer')}](${config.guilds.supportServer.invite})
-🔗 [${interaction.t('commands.help.links.invite')}](${botInvite})
+🛠 [${interaction.t('cmds.help.links.supportServer')}](${config.guilds.supportServer.invite})
+🔗 [${interaction.t('cmds.help.links.invite')}](${botInvite})
 `
           }
         ]);

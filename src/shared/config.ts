@@ -1,54 +1,57 @@
 import { Locale, resolveColor } from 'discord.js';
 import type { Level } from 'pino';
-import { z } from 'zod';
+import * as v from 'valibot';
 import { logger } from '@/shared/logger';
 
-function emptyToUndefined(value: unknown) {
-  return typeof value === 'string' && !value.trim() ? undefined : value;
-}
+// Empty env vars (like `BOT_TOKEN=`) are empty strings not undefined meaning v.optional()'s
+// fallback won't trigger unless we convert empty strings to undefined first
+const emptyToUndefined = v.pipe(
+  v.string(),
+  v.transform((value) => value.trim() || undefined)
+);
 
-function zEnum<const T extends readonly [string, ...string[]]>(values: T, fallback: T[number]) {
-  return z.preprocess(emptyToUndefined, z.enum(values).default(fallback));
-}
+const optionalString = v.optional(v.string());
+const nonEmptyString = v.pipe(v.string(), v.minLength(1));
+const arrayFromString = v.pipe(
+  v.string(),
+  v.transform((value) =>
+    value
+      .split(',')
+      .map((s) => s.trim())
+      .filter((x) => x.length > 0)
+  )
+);
 
-const optionalString = z.preprocess(emptyToUndefined, z.string().optional());
-const requiredString = z.preprocess(emptyToUndefined, z.string().min(1));
-const stringArray = z.preprocess((value) => {
-  const v = emptyToUndefined(value);
-  if (typeof v !== 'string') return [];
+const enumVal = <const T extends readonly [string, ...string[]]>(values: T, fallback: T[number]) => {
+  return v.pipe(emptyToUndefined, v.optional(v.picklist(values), fallback));
+};
 
-  return v
-    .split(',')
-    .map((s) => s.trim())
-    .filter(Boolean);
-}, z.array(z.string()));
-
-const envSchema = z.object({
-  NODE_ENV: zEnum(['development', 'production'], 'development'),
-  BOT_TOKEN: requiredString,
-  LOG_LEVEL: zEnum(['trace', 'debug', 'info', 'warn', 'error', 'fatal'] as const satisfies readonly Level[], 'info'),
-  BOT_ADMINS: stringArray,
+const envSchema = v.object({
+  NODE_ENV: enumVal(['development', 'production'], 'development'),
+  BOT_TOKEN: nonEmptyString,
+  LOG_LEVEL: enumVal(['trace', 'debug', 'info', 'warn', 'error', 'fatal'] as const satisfies Level[], 'info'),
+  BOT_ADMINS: arrayFromString,
   SUPPORT_SERVER_ID: optionalString,
   SUPPORT_SERVER_INVITE: optionalString,
   TEST_GUILD_ID: optionalString
 });
 
-const parsed = envSchema.safeParse(process.env);
+const parsed = v.safeParse(envSchema, process.env);
 if (!parsed.success) {
-  const tree = z.treeifyError(parsed.error).properties || {};
-  const errors = Object.fromEntries(Object.entries(tree).map(([k, v]) => [k, v.errors]));
+  const flat = v.flatten<typeof envSchema>(parsed.issues);
+  const errors = flat.nested ?? {};
 
   logger.fatal({ errors }, 'Invalid environment variables');
   process.exit(1);
 }
 
-logger.level = parsed.data.LOG_LEVEL;
+logger.level = parsed.output.LOG_LEVEL;
 
 export const config = {
-  env: parsed.data.NODE_ENV,
+  env: parsed.output.NODE_ENV,
   bot: {
-    token: parsed.data.BOT_TOKEN,
-    admins: parsed.data.BOT_ADMINS,
+    token: parsed.output.BOT_TOKEN,
+    admins: parsed.output.BOT_ADMINS,
     // These values must match the language codes in the filenames of the files in the localizations folder
     supportedLanguages: {
       [Locale.EnglishUS]: 'en',
@@ -59,11 +62,11 @@ export const config = {
   },
   guilds: {
     test: {
-      id: parsed.data.TEST_GUILD_ID ?? ''
+      id: parsed.output.TEST_GUILD_ID ?? ''
     },
     supportServer: {
-      id: parsed.data.SUPPORT_SERVER_ID ?? '',
-      invite: parsed.data.SUPPORT_SERVER_INVITE ?? ''
+      id: parsed.output.SUPPORT_SERVER_ID ?? '',
+      invite: parsed.output.SUPPORT_SERVER_INVITE ?? ''
     }
   },
   embedColors: {

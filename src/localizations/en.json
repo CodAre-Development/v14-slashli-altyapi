@@ -1,5 +1,5 @@
 {
-  "commands": {
+  "cmds": {
     "help": {
       "commandNotFound": "No command with the name {name} was found.",
       "embed": {

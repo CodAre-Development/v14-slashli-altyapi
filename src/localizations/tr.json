@@ -1,5 +1,5 @@
 {
-  "commands": {
+  "cmds": {
     "help": {
       "commandNotFound": "{name} adında bir komut bulunamadı.",
       "embed": {
