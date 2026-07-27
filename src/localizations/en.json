@@ -20,6 +20,11 @@
         "supportServer": "Support Server",
         "invite": "Invite Me"
       }
+    },
+    "ping": {
+      "pong": "🏓 Pong!",
+      "roundtrip": "Roundtrip",
+      "gateway": "Gateway"
     }
   },
   "permissions": {
@@ -39,7 +44,7 @@
     "dmOnly": "This command can only be used in DMs.",
     "guildOnly": "This command can only be used in servers.",
     "supportServerOnly": "This command can only be used in [our support server]({invite}).",
-    "userMissingPermissions": "You are missing the following permissions to run this command: {permissions}",
+    "memberMissingPermissions": "You are missing the following permissions to run this command: {permissions}",
     "botMissingPermissions": "The bot is missing the following permissions to run this command: {permissions}",
     "unexpectedError": "An unexpected error occurred. Please try again later."
   },

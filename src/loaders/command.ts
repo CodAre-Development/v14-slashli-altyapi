@@ -1,5 +1,6 @@
-import { Glob } from 'bun';
+import path from 'node:path';
 import {
+  type ApplicationCommandOptionBase,
   ApplicationIntegrationType,
   type ChatInputCommandInteraction,
   type Client,
@@ -7,10 +8,12 @@ import {
   type Locale,
   type PermissionResolvable,
   REST,
+  type RESTPostAPIChatInputApplicationCommandsJSONBody,
   Routes,
   type SlashCommandBuilder,
   type SlashCommandOptionsOnlyBuilder,
   type SlashCommandStringOption,
+  type SlashCommandSubcommandBuilder,
   type SlashCommandSubcommandsOnlyBuilder
 } from 'discord.js';
 import { config } from '@/shared/config';
@@ -18,7 +21,7 @@ import { logger } from '@/shared/logger';
 
 export type CommandData = SlashCommandBuilder | SlashCommandOptionsOnlyBuilder | SlashCommandSubcommandsOnlyBuilder;
 
-export type ResolvedCommandConfig = {
+export type CommandConfig = {
   category: 'bot' | 'moderation' | 'admin';
   guildOnly?: boolean;
   dmOnly?: boolean;
@@ -29,17 +32,12 @@ export type ResolvedCommandConfig = {
   disabled?: boolean;
 };
 
-type MaybePerSubcommand<T> = T | Record<string, T>;
-export type CommandConfig = {
-  [K in keyof ResolvedCommandConfig]: K extends 'botAdminsOnly'
-    ? ResolvedCommandConfig[K]
-    : MaybePerSubcommand<ResolvedCommandConfig[K]>;
-};
+type RunOptions = { client: Client<true>; interaction: ChatInputCommandInteraction };
 
 export type Command = {
   data: CommandData;
   config: CommandConfig;
-  run: (options: { client: Client<true>; interaction: ChatInputCommandInteraction }) => Promise<unknown>;
+  run: (options: RunOptions) => Promise<unknown>;
 };
 
 type OptionLocalization = {
@@ -57,27 +55,28 @@ type CommandLocalization = {
 
 type LocalizationFile = Record<string, CommandLocalization>;
 
-export const commandList: Command[] = [];
+export const commands = new Map<string, Command>();
 
 export async function loadCommands(registerToDiscord = false) {
-  const localizations = {} as Record<Locale, LocalizationFile>;
-  commandList.length = 0;
+  commands.clear();
 
+  const localizations = new Map<Locale, LocalizationFile>();
   for (const [locale, filePath] of Object.entries(config.bot.supportedLanguages)) {
     const data = await importLanguageFile(filePath);
     if (!data) continue;
 
-    localizations[locale as Locale] = data;
+    localizations.set(locale as Locale, data);
   }
 
-  const glob = new Glob('./src/commands/**/*.ts');
-  const publicCommands: CommandData[] = [];
-  const adminCommands: CommandData[] = [];
+  const glob = new Bun.Glob('**/*.ts');
+  const publicCommands: RESTPostAPIChatInputApplicationCommandsJSONBody[] = [];
+  const adminCommands: RESTPostAPIChatInputApplicationCommandsJSONBody[] = [];
 
-  for await (const filePath of glob.scan({ absolute: true })) {
-    const cmd: Command = (await import(filePath)).default;
-    const botAdminsOnly = cmd.config.botAdminsOnly;
-    if (!botAdminsOnly) {
+  for await (const filePath of glob.scan({ cwd: path.resolve('src', 'commands'), absolute: true })) {
+    const cmd: Command | undefined = (await import(filePath)).default;
+    if (!cmd) continue;
+
+    if (!cmd.config.botAdminsOnly) {
       cmd.data
         .setContexts([
           InteractionContextType.Guild,
@@ -87,22 +86,19 @@ export async function loadCommands(registerToDiscord = false) {
         .setIntegrationTypes([ApplicationIntegrationType.GuildInstall, ApplicationIntegrationType.UserInstall]);
     }
 
-    for (const lang in localizations) {
-      const language = lang as Locale;
-      const commandData = localizations[language]?.[cmd.data.name];
-      if (commandData) setLocalizations(language, cmd.data, commandData);
+    for (const lang of localizations.keys()) {
+      const commandData = localizations.get(lang)?.[cmd.data.name];
+      if (commandData) setLocalizations(lang, cmd.data as SlashCommandBuilder, commandData);
     }
 
-    const commandListForRegistration = botAdminsOnly ? adminCommands : publicCommands;
-    commandListForRegistration.push(cmd.data);
-
-    commandList.push(cmd);
+    (cmd.config.botAdminsOnly ? adminCommands : publicCommands).push(cmd.data.toJSON());
+    commands.set(cmd.data.name, cmd);
   }
 
   if (registerToDiscord) {
-    // biome-ignore lint/style/noNonNullAssertion: Impossible for this to be null, the token is validated on startup
-    const clientId = Buffer.from(config.bot.token.split('.')[0]!, 'base64').toString();
-    const rest = new REST({ version: '10' }).setToken(config.bot.token);
+    // biome-ignore lint/style/noNonNullAssertion: Can't be null
+    const clientId = atob(config.bot.token.split('.')[0]!);
+    const rest = new REST().setToken(config.bot.token);
     await rest.put(Routes.applicationCommands(clientId), { body: publicCommands });
     logger.info({ scope: 'global' }, 'Registered application commands');
 
@@ -115,23 +111,28 @@ export async function loadCommands(registerToDiscord = false) {
   }
 }
 
-function setLocalizations(lang: Locale, command: CommandData, commandData: CommandLocalization | OptionLocalization) {
+function setLocalizations(
+  lang: Locale,
+  builder: SlashCommandBuilder | SlashCommandSubcommandBuilder | ApplicationCommandOptionBase,
+  localization: CommandLocalization | OptionLocalization
+) {
   const isDefault = lang === config.bot.defaultLanguage;
-  if (isDefault) command.setDescription(commandData.description);
+  if (isDefault) builder.setDescription(localization.description);
 
-  command.setNameLocalization(lang, commandData.name);
-  command.setDescriptionLocalization(lang, commandData.description);
+  builder.setNameLocalization(lang, localization.name);
+  builder.setDescriptionLocalization(lang, localization.description);
 
-  for (const opt of command.options || []) {
-    const option = opt as unknown as SlashCommandBuilder;
-    const optionData = commandData.options?.[option.name];
+  if (!('options' in builder)) return;
+  for (const opt of builder.options || []) {
+    const option = opt as SlashCommandSubcommandBuilder | ApplicationCommandOptionBase;
+    const optionData = localization.options?.[option.name];
     if (!optionData) continue;
 
     setLocalizations(lang, option, optionData);
 
     if (!optionData.choices) continue;
 
-    const stringOption = opt as unknown as SlashCommandStringOption;
+    const stringOption = opt as SlashCommandStringOption;
     for (const choice of stringOption.choices ?? []) {
       const localizedName = optionData.choices[choice.value];
       if (localizedName) {

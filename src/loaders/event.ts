@@ -1,4 +1,4 @@
-import { Glob } from 'bun';
+import path from 'node:path';
 import type { Client, ClientEvents } from 'discord.js';
 
 export type Event<T extends keyof ClientEvents> = {
@@ -8,16 +8,12 @@ export type Event<T extends keyof ClientEvents> = {
 };
 
 export async function loadEvents(client: Client<true>) {
-  const glob = new Glob('./src/events/**/*.ts');
-  for await (const filePath of glob.scan({ absolute: true })) {
-    const event = (await import(filePath)).default;
-    if (!isEvent(event)) continue;
+  const glob = new Bun.Glob('**/*.ts');
+  for await (const filePath of glob.scan({ cwd: path.resolve('src', 'events'), absolute: true })) {
+    // biome-ignore lint/suspicious/noExplicitAny: We don't care about the name
+    const event: Event<any> | undefined = (await import(filePath)).default;
+    if (!event) continue;
 
     client[event.once ? 'once' : 'on'](event.name, (...params: unknown[]) => event.run(client, ...params));
   }
-}
-
-// biome-ignore lint/suspicious/noExplicitAny: We don't care about the name
-function isEvent(data: any): data is Event<any> {
-  return typeof data === 'object' && typeof data.name === 'string' && typeof data.run === 'function';
 }

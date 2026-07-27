@@ -1,5 +1,5 @@
 import { EmbedBuilder, OAuth2Scopes, PermissionFlagsBits, SlashCommandBuilder } from 'discord.js';
-import { commandList } from '@/loaders/command';
+import { commands } from '@/loaders/command';
 import { config } from '@/shared/config';
 import { defineCommand } from '@/utils/define';
 
@@ -10,13 +10,12 @@ export default defineCommand({
   },
   run: async ({ client, interaction }) => {
     const commandName = interaction.options.getString('command');
-    const cmd = commandName && commandList.find((x) => x.data.name.toLowerCase() === commandName.toLowerCase());
-
     const embed = new EmbedBuilder()
       .setColor(config.embedColors.default)
       .setAuthor({ name: client.user.username, iconURL: client.user.displayAvatarURL() });
 
     if (commandName) {
+      const cmd = commands.get(commandName.toLowerCase());
       if (!cmd || cmd.config.botAdminsOnly) {
         return interaction.error(interaction.t('cmds.help.commandNotFound', { name: `\`${commandName}\`` }));
       }
@@ -56,7 +55,7 @@ export default defineCommand({
           {
             name: interaction.t('cmds.help.links.title'),
             value: `
-🛠 [${interaction.t('cmds.help.links.supportServer')}](${config.guilds.supportServer.invite})
+🛠 [${interaction.t('cmds.help.links.supportServer')}](${config.guilds.support.invite})
 🔗 [${interaction.t('cmds.help.links.invite')}](${botInvite})
 `
           }

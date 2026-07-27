@@ -20,6 +20,11 @@
         "supportServer": "Destek Sunucusu",
         "invite": "Davet Et"
       }
+    },
+    "ping": {
+      "pong": "🏓 Pong!",
+      "roundtrip": "Gidiş-Dönüş",
+      "gateway": "Ağ Geçidi"
     }
   },
   "permissions": {
@@ -39,7 +44,7 @@
     "dmOnly": "Bu komut sadece DM'lerde kullanılabilir.",
     "guildOnly": "Bu komut sadece sunucularda kullanılabilir.",
     "supportServerOnly": "Bu komut yalnızca [destek sunucumuzda]({invite}) kullanılabilir.",
-    "userMissingPermissions": "Bu komutu çalıştırmak için şu izinlere sahip olmalısınız: {permissions}",
+    "memberMissingPermissions": "Bu komutu çalıştırmak için şu izinlere sahip olmalısınız: {permissions}",
     "botMissingPermissions": "Bu komutu çalıştırmak için bot şu izinlere sahip olmalı: {permissions}",
     "unexpectedError": "Beklenmedik bir hata oluştu. Lütfen daha sonra tekrar deneyin."
   },

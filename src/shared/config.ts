@@ -39,9 +39,7 @@ const envSchema = v.object({
 const parsed = v.safeParse(envSchema, process.env);
 if (!parsed.success) {
   const flat = v.flatten<typeof envSchema>(parsed.issues);
-  const errors = flat.nested ?? {};
-
-  logger.fatal({ errors }, 'Invalid environment variables');
+  logger.fatal({ errors: flat.nested ?? {} }, 'Invalid environment variables');
   process.exit(1);
 }
 
@@ -51,7 +49,7 @@ export const config = {
   env: parsed.output.NODE_ENV,
   bot: {
     token: parsed.output.BOT_TOKEN,
-    admins: parsed.output.BOT_ADMINS,
+    admins: new Set(parsed.output.BOT_ADMINS),
     // These values must match the language codes in the filenames of the files in the localizations folder
     supportedLanguages: {
       [Locale.EnglishUS]: 'en',
@@ -64,7 +62,7 @@ export const config = {
     test: {
       id: parsed.output.TEST_GUILD_ID ?? ''
     },
-    supportServer: {
+    support: {
       id: parsed.output.SUPPORT_SERVER_ID ?? '',
       invite: parsed.output.SUPPORT_SERVER_INVITE ?? ''
     }

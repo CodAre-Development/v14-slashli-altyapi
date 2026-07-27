@@ -8,14 +8,14 @@ export default defineCommand({
   },
   run: async ({ client, interaction }) => {
     const before = performance.now();
-    await interaction.reply({ content: 'Ping' });
+    await interaction.deferReply();
 
     const latency = Math.round(performance.now() - before);
     return interaction.editReply({
       content: `
-🏓 Pong!
-REST: ${latency}ms
-Gateway: ${client.ws.ping}ms
+${interaction.t('cmds.ping.pong')}
+${interaction.t('cmds.ping.roundtrip')}: ${latency}ms
+${interaction.t('cmds.ping.gateway')}: ${client.ws.ping}ms
 `
     });
   }
