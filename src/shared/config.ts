@@ -33,7 +33,7 @@ const envSchema = v.object({
   BOT_ADMINS: arrayFromString,
   SUPPORT_SERVER_ID: optionalString,
   SUPPORT_SERVER_INVITE: optionalString,
-  TEST_GUILD_ID: optionalString
+  DEV_GUILD_ID: optionalString
 });
 
 const parsed = v.safeParse(envSchema, process.env);
@@ -50,8 +50,8 @@ export const config = {
   bot: {
     token: parsed.output.BOT_TOKEN,
     admins: new Set(parsed.output.BOT_ADMINS),
-    // These values must match the language codes in the filenames of the files in the localizations folder
-    supportedLanguages: {
+    // These values must match the folder names under locales
+    languages: {
       [Locale.EnglishUS]: 'en',
       [Locale.EnglishGB]: 'en',
       [Locale.Turkish]: 'tr'
@@ -59,8 +59,8 @@ export const config = {
     defaultLanguage: Locale.EnglishUS
   },
   guilds: {
-    test: {
-      id: parsed.output.TEST_GUILD_ID ?? ''
+    dev: {
+      id: parsed.output.DEV_GUILD_ID ?? ''
     },
     support: {
       id: parsed.output.SUPPORT_SERVER_ID ?? '',

@@ -1,0 +1,17 @@
+{
+  "permissions": {
+    "Administrator": "Administrator",
+    "ManageGuild": "Manage Server",
+    "ManageRoles": "Manage Roles",
+    "ManageChannels": "Manage Channels",
+    "BanMembers": "Ban Members",
+    "KickMembers": "Kick Members",
+    "ModerateMembers": "Timeout Members",
+    "ManageMessages": "Manage Messages",
+    "ManageNicknames": "Manage Nicknames"
+  },
+  "embedTitles": {
+    "error": ["Error!", "Oops!", "Uh oh!"],
+    "success": ["Success!", "Nice!", "Great!"]
+  }
+}

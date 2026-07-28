@@ -1,0 +1,28 @@
+{
+  "help": {
+    "commandNotFound": "No command with the name {name} was found.",
+    "embed": {
+      "title": "Help Menu",
+      "description": "This is a very useful help menu."
+    },
+    "details": {
+      "title": "Details",
+      "category": "Category"
+    },
+    "categories": {
+      "bot": "Bot",
+      "moderation": "Moderation",
+      "admin": "Admin"
+    },
+    "links": {
+      "title": "Links",
+      "supportServer": "Support Server",
+      "invite": "Invite Me"
+    }
+  },
+  "ping": {
+    "pong": "🏓 Pong!",
+    "roundtrip": "Roundtrip",
+    "gateway": "Gateway"
+  }
+}

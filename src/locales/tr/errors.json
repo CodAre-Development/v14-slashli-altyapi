@@ -1,0 +1,11 @@
+{
+  "botAdminsOnly": "Bu komut yalnızca bot yöneticileri tarafından kullanılabilir.",
+  "dmOnly": "Bu komut sadece DM'lerde kullanılabilir.",
+  "guildOnly": "Bu komut sadece sunucularda kullanılabilir.",
+  "supportServerOnly": "Bu komut yalnızca [destek sunucumuzda]({invite}) kullanılabilir.",
+  "permissions": {
+    "missingMember": "Bu komutu kullanmak için şu izinlere sahip olmalısınız: {permissions}",
+    "missingBot": "Botun bu komutu çalıştırabilmesi için şu izinlere sahip olmalı: {permissions}"
+  },
+  "generic": "Bir hata oluştu. Lütfen tekrar deneyin."
+}

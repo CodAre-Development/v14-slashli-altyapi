@@ -1,5 +1,4 @@
 {
-  "$schema": "./schema.json",
   "help": {
     "name": "yardım",
     "description": "Bot ve komutları hakkındaki bilgileri görüntüleyin",

@@ -1,11 +1,16 @@
-import type en from '@/localizations/en.json';
+import 'i18next';
+import type commands from '@/locales/en/commands.json';
+import type common from '@/locales/en/common.json';
+import type errors from '@/locales/en/errors.json';
 
 declare module 'i18next' {
   interface CustomTypeOptions {
-    defaultNS: 'translation';
+    defaultNS: 'commands';
     strictKeyChecks: true;
     resources: {
-      translation: typeof en;
+      commands: typeof commands;
+      common: typeof common;
+      errors: typeof errors;
     };
   }
 }

@@ -1,43 +1,46 @@
 import { EmbedBuilder, OAuth2Scopes, PermissionFlagsBits, SlashCommandBuilder } from 'discord.js';
 import { commands } from '@/loaders/command';
 import { config } from '@/shared/config';
-import { defineCommand } from '@/utils/define';
+import { resolveLanguage } from '@/utils/lang';
+import { sendError } from '@/utils/sendEmbed';
+import { defineCommand } from '@/utils/typeguards';
 
 export default defineCommand({
-  data: new SlashCommandBuilder().setName('help').addStringOption((o) => o.setName('command')),
+  data: new SlashCommandBuilder().setName('help').addStringOption((o) => o.setName('command').setAutocomplete(true)),
   config: {
     category: 'bot'
   },
-  run: async ({ client, interaction }) => {
+  run: async ({ interaction, t }) => {
     const commandName = interaction.options.getString('command');
     const embed = new EmbedBuilder()
       .setColor(config.embedColors.default)
-      .setAuthor({ name: client.user.username, iconURL: client.user.displayAvatarURL() });
+      .setAuthor({ name: interaction.client.user.username, iconURL: interaction.client.user.displayAvatarURL() });
 
     if (commandName) {
-      const cmd = commands.get(commandName.toLowerCase());
+      const lang = resolveLanguage(interaction.locale);
+      const cmd = commands.find(
+        (c) =>
+          c.data.name === commandName.toLowerCase() ||
+          c.data.name_localizations?.[lang] === commandName.toLocaleLowerCase(lang)
+      );
       if (!cmd || cmd.config.botAdminsOnly) {
-        return interaction.error(interaction.t('cmds.help.commandNotFound', { name: `\`${commandName}\`` }));
+        return sendError(interaction, t('help.commandNotFound', { name: `\`${commandName}\`` }));
       }
 
-      const name = cmd.data.name_localizations?.[interaction.language] || cmd.data.name;
-      const description = cmd.data.description_localizations?.[interaction.language] || cmd.data.description;
-      // biome-ignore lint/style/noNonNullAssertion: Category is required and can't be null
-      const category = typeof cmd.config.category === 'string' ? cmd.config.category : cmd.config.category['*']!;
+      const name = cmd.data.name_localizations?.[lang] || cmd.data.name;
+      const description = cmd.data.description_localizations?.[lang] || cmd.data.description;
 
       embed
-        .setTitle(name.replace(/\b\w/g, (c) => c.toUpperCase()))
+        .setTitle(name.replace(/(^|\s)\p{L}/gu, (c) => c.toLocaleUpperCase(lang)))
         .setDescription(description)
         .setFields([
           {
-            name: interaction.t('cmds.help.details.title'),
-            value: `
-**${interaction.t('cmds.help.details.category')}**: ${interaction.t(`cmds.help.categories.${category}`)}
-`
+            name: t('help.details.title'),
+            value: `**${t('help.details.category')}**: ${t(`help.categories.${cmd.config.category}`)}`
           }
         ]);
     } else {
-      const botInvite = client.generateInvite({
+      const botInvite = interaction.client.generateInvite({
         permissions: [
           PermissionFlagsBits.SendMessages,
           PermissionFlagsBits.SendMessagesInThreads,
@@ -49,19 +52,37 @@ export default defineCommand({
       });
 
       embed
-        .setTitle(interaction.t('cmds.help.embed.title'))
-        .setDescription(interaction.t('cmds.help.embed.description'))
+        .setTitle(t('help.embed.title'))
+        .setDescription(t('help.embed.description'))
         .setFields([
           {
-            name: interaction.t('cmds.help.links.title'),
+            name: t('help.links.title'),
             value: `
-🛠 [${interaction.t('cmds.help.links.supportServer')}](${config.guilds.support.invite})
-🔗 [${interaction.t('cmds.help.links.invite')}](${botInvite})
+🛠 [${t('help.links.supportServer')}](${config.guilds.support.invite})
+🔗 [${t('help.links.invite')}](${botInvite})
 `
           }
         ]);
     }
 
     return interaction.reply({ embeds: [embed] });
+  },
+  autocomplete: async ({ interaction }) => {
+    const query = interaction.options.getFocused();
+    const lang = resolveLanguage(interaction.locale);
+    const filtered = query
+      ? commands.filter(
+          (c) =>
+            c.data.name.startsWith(query.toLowerCase()) ||
+            c.data.name_localizations?.[lang]?.startsWith(query.toLocaleLowerCase(lang))
+        )
+      : commands;
+
+    return interaction.respond(
+      filtered.map((c) => ({
+        name: c.data.name_localizations?.[lang] || c.data.name,
+        value: c.data.name
+      }))
+    );
   }
 });

@@ -2,8 +2,9 @@ import path from 'node:path';
 import {
   type ApplicationCommandOptionBase,
   ApplicationIntegrationType,
+  type AutocompleteInteraction,
   type ChatInputCommandInteraction,
-  type Client,
+  Collection,
   InteractionContextType,
   type Locale,
   type PermissionResolvable,
@@ -16,6 +17,7 @@ import {
   type SlashCommandSubcommandBuilder,
   type SlashCommandSubcommandsOnlyBuilder
 } from 'discord.js';
+import type { TFunction } from 'i18next';
 import { config } from '@/shared/config';
 import { logger } from '@/shared/logger';
 
@@ -29,15 +31,18 @@ export type CommandConfig = {
   memberPermissions?: PermissionResolvable[];
   botPermissions?: PermissionResolvable[];
   botAdminsOnly?: boolean;
-  disabled?: boolean;
 };
 
-type RunOptions = { client: Client<true>; interaction: ChatInputCommandInteraction };
+type RunOptions<T> = {
+  interaction: T;
+  t: TFunction<'commands'>;
+};
 
 export type Command = {
   data: CommandData;
   config: CommandConfig;
-  run: (options: RunOptions) => Promise<unknown>;
+  run: (options: RunOptions<ChatInputCommandInteraction>) => Promise<unknown>;
+  autocomplete?: (options: RunOptions<AutocompleteInteraction>) => Promise<unknown>;
 };
 
 type OptionLocalization = {
@@ -55,17 +60,17 @@ type CommandLocalization = {
 
 type LocalizationFile = Record<string, CommandLocalization>;
 
-export const commands = new Map<string, Command>();
+export const commands = new Collection<string, Command>();
 
 export async function loadCommands(registerToDiscord = false) {
   commands.clear();
 
   const localizations = new Map<Locale, LocalizationFile>();
-  for (const [locale, filePath] of Object.entries(config.bot.supportedLanguages)) {
-    const data = await importLanguageFile(filePath);
-    if (!data) continue;
+  for (const [locale, fileCode] of Object.entries(config.bot.languages)) {
+    const file = await importLanguageFile(fileCode);
+    if (!file) continue;
 
-    localizations.set(locale as Locale, data);
+    localizations.set(locale as Locale, file);
   }
 
   const glob = new Bun.Glob('**/*.ts');
@@ -88,10 +93,20 @@ export async function loadCommands(registerToDiscord = false) {
 
     for (const lang of localizations.keys()) {
       const commandData = localizations.get(lang)?.[cmd.data.name];
-      if (commandData) setLocalizations(lang, cmd.data as SlashCommandBuilder, commandData);
+      if (!commandData) {
+        if (lang === config.bot.defaultLanguage && !cmd.config.botAdminsOnly) {
+          throw new Error(`Missing default-language commandData for command "${cmd.data.name}"`);
+        }
+        continue;
+      }
+
+      setLocalizations(lang, cmd.data as SlashCommandBuilder, commandData);
     }
 
-    (cmd.config.botAdminsOnly ? adminCommands : publicCommands).push(cmd.data.toJSON());
+    if (registerToDiscord) {
+      (cmd.config.botAdminsOnly ? adminCommands : publicCommands).push(cmd.data.toJSON());
+    }
+
     commands.set(cmd.data.name, cmd);
   }
 
@@ -102,11 +117,11 @@ export async function loadCommands(registerToDiscord = false) {
     await rest.put(Routes.applicationCommands(clientId), { body: publicCommands });
     logger.info({ scope: 'global' }, 'Registered application commands');
 
-    const testGuildId = config.guilds.test.id;
-    if (testGuildId && adminCommands.length) {
-      const route = Routes.applicationGuildCommands(clientId, testGuildId);
+    const devGuildId = config.guilds.dev.id;
+    if (devGuildId && adminCommands.length) {
+      const route = Routes.applicationGuildCommands(clientId, devGuildId);
       await rest.put(route, { body: adminCommands });
-      logger.info({ scope: 'guild', guildId: testGuildId }, 'Registered application commands');
+      logger.info({ scope: 'guild', guildId: devGuildId }, 'Registered application commands');
     }
   }
 }
@@ -145,7 +160,7 @@ function setLocalizations(
 
 async function importLanguageFile(lang: string) {
   try {
-    const file = await import(`@/localizations/commandData/${lang}.json`, {
+    const file = await import(`@/locales/${lang}/commandData.json`, {
       with: { type: 'json' }
     });
     return file.default as LocalizationFile;

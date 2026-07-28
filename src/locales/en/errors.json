@@ -1,0 +1,11 @@
+{
+  "botAdminsOnly": "This command can only be used by bot administrators.",
+  "dmOnly": "This command can only be used in DMs.",
+  "guildOnly": "This command can only be used in servers.",
+  "supportServerOnly": "This command can only be used in [our support server]({invite}).",
+  "permissions": {
+    "missingMember": "You need these permissions to use this command: {permissions}",
+    "missingBot": "The bot needs these permissions to run this comand: {permissions}"
+  },
+  "generic": "An error occurred. Please try again."
+}

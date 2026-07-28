@@ -1,21 +1,21 @@
 import { SlashCommandBuilder } from 'discord.js';
-import { defineCommand } from '@/utils/define';
+import { defineCommand } from '@/utils/typeguards';
 
 export default defineCommand({
   data: new SlashCommandBuilder().setName('ping'),
   config: {
     category: 'bot'
   },
-  run: async ({ client, interaction }) => {
-    const before = performance.now();
+  run: async ({ interaction, t }) => {
+    const start = performance.now();
     await interaction.deferReply();
 
-    const latency = Math.round(performance.now() - before);
+    const latency = Math.round(performance.now() - start);
     return interaction.editReply({
       content: `
-${interaction.t('cmds.ping.pong')}
-${interaction.t('cmds.ping.roundtrip')}: ${latency}ms
-${interaction.t('cmds.ping.gateway')}: ${client.ws.ping}ms
+${t('ping.pong')}
+${t('ping.roundtrip')}: ${latency}ms
+${t('ping.gateway')}: ${interaction.client.ws.ping}ms
 `
     });
   }

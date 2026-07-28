@@ -1,0 +1,28 @@
+{
+  "help": {
+    "commandNotFound": "{name} adında bir komut bulunamadı.",
+    "embed": {
+      "title": "Yardım Menüsü",
+      "description": "Bu çok kullanışlı bir yardım menüsü."
+    },
+    "details": {
+      "title": "Detaylar",
+      "category": "Kategori"
+    },
+    "categories": {
+      "bot": "Bot",
+      "moderation": "Moderasyon",
+      "admin": "Yönetim"
+    },
+    "links": {
+      "title": "Linkler",
+      "supportServer": "Destek Sunucusu",
+      "invite": "Davet Et"
+    }
+  },
+  "ping": {
+    "pong": "🏓 Pong!",
+    "roundtrip": "Gidiş-Dönüş",
+    "gateway": "Ağ Geçidi"
+  }
+}

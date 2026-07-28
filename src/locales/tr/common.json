@@ -1,0 +1,17 @@
+{
+  "permissions": {
+    "Administrator": "Yönetici",
+    "ManageGuild": "Sunucuyu Yönet",
+    "ManageRoles": "Rolleri Yönet",
+    "ManageChannels": "Kanalları Yönet",
+    "BanMembers": "Üyeleri Yasakla",
+    "KickMembers": "Üyeleri At",
+    "ModerateMembers": "Üyelere Zaman Aşımı Uygula",
+    "ManageMessages": "Mesajları Yönet",
+    "ManageNicknames": "Takma Adları Yönet"
+  },
+  "embedTitles": {
+    "error": ["Hata!", "Oops!", "Uh oh!"],
+    "success": ["Başarılı!", "Güzel!", "Harika!"]
+  }
+}
