@@ -41,10 +41,12 @@ client.once(Events.ClientReady, async (client) => {
   }
 });
 
-await client.login(config.bot.token).catch((err) => {
+try {
+  await client.login(config.bot.token);
+} catch (err) {
   logger.fatal({ err }, 'Failed to login');
   process.exit(1);
-});
+}
 
 async function setupI18n() {
   const namespaces = ['common', 'commands', 'errors'];

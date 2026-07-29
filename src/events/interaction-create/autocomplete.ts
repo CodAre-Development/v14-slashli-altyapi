@@ -1,9 +1,9 @@
 import type { AutocompleteInteraction } from 'discord.js';
 import i18next from 'i18next';
-import { checkAccess } from '@/events/interactionCreate';
+import { checkAccess } from '@/events/interaction-create';
 import { commands } from '@/loaders/command';
 import { logger } from '@/shared/logger';
-import { resolveLanguage } from '@/utils/lang';
+import { resolveLanguage } from '@/utils/language';
 
 export async function handleAutocomplete(interaction: AutocompleteInteraction) {
   const cmd = commands.get(interaction.commandName);

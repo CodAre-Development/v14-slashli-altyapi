@@ -1,5 +1,5 @@
 import { SlashCommandBuilder } from 'discord.js';
-import { defineCommand } from '@/utils/typeguards';
+import { defineCommand } from '@/utils/type-guards';
 
 export default defineCommand({
   data: new SlashCommandBuilder().setName('ping'),
@@ -9,8 +9,8 @@ export default defineCommand({
   run: async ({ interaction, t }) => {
     const start = performance.now();
     await interaction.deferReply();
-
     const latency = Math.round(performance.now() - start);
+
     return interaction.editReply({
       content: `
 ${t('ping.pong')}

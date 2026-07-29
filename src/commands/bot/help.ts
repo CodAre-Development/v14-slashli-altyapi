@@ -1,9 +1,9 @@
 import { EmbedBuilder, OAuth2Scopes, PermissionFlagsBits, SlashCommandBuilder } from 'discord.js';
 import { commands } from '@/loaders/command';
 import { config } from '@/shared/config';
-import { resolveLanguage } from '@/utils/lang';
-import { sendError } from '@/utils/sendEmbed';
-import { defineCommand } from '@/utils/typeguards';
+import { resolveLanguage } from '@/utils/language';
+import { sendError } from '@/utils/send-embed';
+import { defineCommand } from '@/utils/type-guards';
 
 export default defineCommand({
   data: new SlashCommandBuilder().setName('help').addStringOption((o) => o.setName('command').setAutocomplete(true)),

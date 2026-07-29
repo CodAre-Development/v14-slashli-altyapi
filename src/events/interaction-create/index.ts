@@ -1,12 +1,12 @@
 import type { AutocompleteInteraction, ChatInputCommandInteraction, PermissionResolvable } from 'discord.js';
 import { Events } from 'discord.js';
 import i18next, { type TFunction } from 'i18next';
-import { handleApplicationCommand } from '@/events/interactionCreate/applicationCommand';
-import { handleAutocomplete } from '@/events/interactionCreate/autocomplete';
+import { handleApplicationCommand } from '@/events/interaction-create/application-command';
+import { handleAutocomplete } from '@/events/interaction-create/autocomplete';
 import type { Command } from '@/loaders/command';
 import { config } from '@/shared/config';
-import { resolveLanguage } from '@/utils/lang';
-import { defineEvent } from '@/utils/typeguards';
+import { resolveLanguage } from '@/utils/language';
+import { defineEvent } from '@/utils/type-guards';
 
 export default defineEvent({
   name: Events.InteractionCreate,

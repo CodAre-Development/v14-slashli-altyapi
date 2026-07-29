@@ -160,7 +160,7 @@ function setLocalizations(
 
 async function importLanguageFile(lang: string) {
   try {
-    const file = await import(`@/locales/${lang}/commandData.json`, {
+    const file = await import(`@/locales/${lang}/command-data.json`, {
       with: { type: 'json' }
     });
     return file.default as LocalizationFile;

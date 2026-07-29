@@ -10,17 +10,24 @@ const emptyToUndefined = v.pipe(
   v.transform((value) => value.trim() || undefined)
 );
 
-const optionalString = v.optional(v.string());
-const nonEmptyString = v.pipe(v.string(), v.minLength(1));
-const arrayFromString = v.pipe(
-  v.string(),
-  v.transform((value) =>
-    value
-      .split(',')
-      .map((s) => s.trim())
-      .filter((x) => x.length > 0)
-  )
+const snowflake = v.pipe(v.string(), v.trim(), v.regex(/^\d{17,20}$/, 'Must be a valid Discord ID'));
+const optionalSnowflake = v.optional(v.pipe(emptyToUndefined, v.optional(snowflake)));
+const nonEmptyString = v.pipe(v.string(), v.trim(), v.minLength(1, 'Must not be empty'));
+const optionalUrl = v.optional(
+  v.pipe(emptyToUndefined, v.optional(v.pipe(v.string(), v.trim(), v.url('Must be a valid URL'))))
 );
+
+const arrayFromString = <TItem>(itemSchema: v.GenericSchema<string, TItem>) =>
+  v.pipe(
+    v.optional(v.string(), ''),
+    v.transform((value) =>
+      value
+        .split(',')
+        .map((s) => s.trim())
+        .filter((s) => s.length > 0)
+    ),
+    v.array(itemSchema)
+  );
 
 const enumVal = <const T extends readonly [string, ...string[]]>(values: T, fallback: T[number]) => {
   return v.pipe(emptyToUndefined, v.optional(v.picklist(values), fallback));
@@ -30,10 +37,10 @@ const envSchema = v.object({
   NODE_ENV: enumVal(['development', 'production'], 'development'),
   BOT_TOKEN: nonEmptyString,
   LOG_LEVEL: enumVal(['trace', 'debug', 'info', 'warn', 'error', 'fatal'] as const satisfies Level[], 'info'),
-  BOT_ADMINS: arrayFromString,
-  SUPPORT_SERVER_ID: optionalString,
-  SUPPORT_SERVER_INVITE: optionalString,
-  DEV_GUILD_ID: optionalString
+  BOT_ADMINS: arrayFromString(snowflake),
+  SUPPORT_SERVER_ID: optionalSnowflake,
+  SUPPORT_SERVER_INVITE: optionalUrl,
+  DEV_GUILD_ID: optionalSnowflake
 });
 
 const parsed = v.safeParse(envSchema, process.env);
@@ -60,11 +67,11 @@ export const config = {
   },
   guilds: {
     dev: {
-      id: parsed.output.DEV_GUILD_ID ?? ''
+      id: parsed.output.DEV_GUILD_ID
     },
     support: {
-      id: parsed.output.SUPPORT_SERVER_ID ?? '',
-      invite: parsed.output.SUPPORT_SERVER_INVITE ?? ''
+      id: parsed.output.SUPPORT_SERVER_ID,
+      invite: parsed.output.SUPPORT_SERVER_INVITE
     }
   },
   embedColors: {

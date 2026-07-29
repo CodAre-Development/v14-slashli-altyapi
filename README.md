@@ -32,7 +32,7 @@ bun run start
 Commands are defined with `defineCommand()` for type safety.
 
 When using localization, **do not** set command, subcommand or option descriptions in `SlashCommandBuilder`.
-The command loader automatically applies the default descriptions and all localized metadata from the `commandData` localization files during registration.
+The command loader automatically applies the default descriptions and all localized metadata from the `command-data` localization files during registration.
 
 Example:
 
@@ -77,11 +77,11 @@ run: async ({ interaction, t }) => {
 
 ### Command Data
 
-`commandData.json` contains the localized names, descriptions and choice labels used when registering slash commands to Discord.
+`command-data.json` contains the localized names, descriptions and choice labels used when registering slash commands to Discord.
 
 Every top-level key must match the original English name passed to `.setName()` and must not be translated. Only the `name`, `description` and choice labels should be localized.
 
-Example (`tr/commandData.json`):
+Example (`tr/command-data.json`):
 
 ```json
 {
@@ -116,7 +116,7 @@ Example (`tr/commandData.json`):
 
 ## Sending Replies
 
-It's recommended to use these helpers instead of calling `interaction.reply`/`editReply` directly for consistency:
+It's recommended to use these helpers instead of calling `interaction.reply()` directly for consistency:
 
 ```ts
 await sendSuccess(interaction, t('ping.pong'));

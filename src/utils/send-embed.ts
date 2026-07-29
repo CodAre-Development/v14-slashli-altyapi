@@ -8,7 +8,7 @@ import {
 } from 'discord.js';
 import i18next from 'i18next';
 import { config } from '@/shared/config';
-import { resolveLanguage } from './lang';
+import { resolveLanguage } from './language';
 
 export type EmbedType = 'error' | 'success';
 export type EmbedOptions = Omit<EmbedData, 'image' | 'thumbnail' | 'color'> & {

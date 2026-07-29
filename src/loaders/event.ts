@@ -4,7 +4,7 @@ import type { Client, ClientEvents } from 'discord.js';
 export type Event<T extends keyof ClientEvents> = {
   name: T;
   once?: boolean;
-  run: (...params: ClientEvents[T]) => void;
+  run: (...args: ClientEvents[T]) => void;
 };
 
 export async function loadEvents(client: Client) {
